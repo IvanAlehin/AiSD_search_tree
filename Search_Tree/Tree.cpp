@@ -15,8 +15,6 @@ public:
 	Node* left;
 	Node* right;
 
-	Node(int _value, Node* _left, Node* _right) : value(_value), left(_left), right(_right) {};
-	Node() :value(0), left(nullptr), right(nullptr) {};
 	Node(int _value) : value(_value), left(nullptr), right(nullptr) {};
 };
 
@@ -58,21 +56,22 @@ private:
 		return (height(ptr->left) - height(ptr->right));
 	}
 
-	Node* rotate_left(Node* ptr) {
+	Node* rotate_left(Node* ptr) {//
 		auto tmp = ptr->right;
 		ptr->right = tmp->left;
 		tmp->left = ptr;
 		return tmp;
 	}
 
-	Node* rotate_right(Node* ptr) {
+	Node* rotate_right(Node* ptr) {//
 		auto tmp = ptr->left;
 		ptr->left = tmp->right;
 		tmp->right = ptr;
 		return tmp;
 	}
 
-	Node* balance(Node* ptr) {
+	Node* balance(Node* ptr) {//
+
 		auto x = ratio(ptr);
 		if (x > 1) {
 			if (ratio(ptr->left) >= 0) {
@@ -96,21 +95,21 @@ private:
 	}
 
 	Node* min(Node* ptr) {
-		while (ptr->left != nullptr) {
+		while (ptr->left) {
 			ptr = ptr->left;
 		}
 		return ptr;
 	}
 
 	Node* max(Node* ptr) {
-		while (ptr->right != nullptr) {
+		while (ptr->right) {
 			ptr = ptr->right;
 		}
 		return ptr;
 	}
 
 	Node* erase(Node* ptr, const int value) {
-		if (ptr == nullptr) {
+		if (!ptr) {
 			return nullptr;
 		}
 		if (value < ptr->value) {
@@ -148,7 +147,7 @@ private:
 	}
 
 	Node* insert(Node* ptr, const int value) {
-		if (ptr == nullptr) {
+		if (!ptr) {
 			return new Node(value);
 		}
 		if (value < ptr->value) {
@@ -164,7 +163,7 @@ private:
 	}
 
 	void print(Node* ptr) {
-		if (ptr != nullptr) {
+		if (ptr) {
 			cout << ptr->value << " ";
 			this->print(ptr->left);
 			this->print(ptr->right);
@@ -196,11 +195,18 @@ public:
 	}
 	~MyTree() {
 		delete_tree(root);
+		root = nullptr;
+
 	}
 
-	void operator=(MyTree& other) {
+	MyTree& operator=(const MyTree& other) {
+		if (this == &other) {
+			return *this;
+		}
+
 		delete_tree(root);
 		root = copy(other.root);
+		return *this;
 	}
 	int min() {
 		return min(root)->value;
@@ -213,18 +219,34 @@ public:
 		root = nullptr;
 	}
 
-	void insert(const int value) {
-		root = insert(root, value);
+	bool insert(const int value) {
+		if (contains(value)) {
+			return false;
+		}
+		else {
+			root = insert(root, value);
+			return true;
+		}
 	}
+
 	void print() {
 		print(root);
 		cout << endl;
 	}
 	bool contains(const int value) {
-		return contains(root, value);
+		if (!contains(root, value)) {
+			return false;
+		}
+		return true;
 	}
-	void erase(const int value) {
-		root = erase(root, value);
+	bool erase(const int value) {
+		if (!contains(value)) {
+			return false;
+		}
+		else {
+			root = erase(root, value);
+			return true;
+		}
 	}
 };
 
