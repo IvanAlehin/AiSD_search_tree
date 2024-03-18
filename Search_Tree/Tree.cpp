@@ -248,11 +248,82 @@ public:
 			return true;
 		}
 	}
+	
+	void unionTree(MyTree& MyTree2, MyTree& result) {
+		unionTreeNode(root, MyTree2.root, result);
+	}
+
+	void unionTreeNode(Node* node1, Node* node2, MyTree& result) {
+		if (node1 != nullptr) {
+			unionTreeNode(node1->left, nullptr);
+			result.insert(node1->value);
+			unionTreeNode(node1->value, nullptr);
+		}
+		if (node2 != nullptr) {
+			unionTreeNode(nullptr, node2->left);
+			result.insert(node2->value);
+			unionTreeNode(nullptr, node2->right);
+		}
+	}
+
+	void symmetricDifference(MyTree& MyTree2, MyTree& result) {
+		symmetricDifferenceNode(root, MyTree2.root, result);
+	}
+
+	void symmetricDifferenceNode(Node* node1, Node* node2, MyTree& result) {
+		if (node1 == nullptr && node2 == nullptr) {
+			return;
+		}
+
+		if (node1 != nullptr && node2 != nullptr) {
+			if (node1->value < node2->value) {
+				symmetricDifferenceNode(node1->left, node2);
+				result.insert(node1->value);
+				symmetricDifferenceNode(node1->right, node2);
+			}
+			else if (node1->value > node2->value) {
+				symmetricDifferenceNode(node1, node2->left); 
+				result.insert(node2->value);
+				symmetricDifferenceNode(node1, node2->right);
+			}
+			else {
+				symmetricDifferenceNode(node1->left, node2->left);
+				symmetricDifferenceNode(node1->right, node2->right);
+			}
+		}
+		else if (node1 != nullptr) {
+			result.insert(node1->value);
+			symmetricDifferenceNode(node1->left, nullptr);
+			symmetricDifferenceNode(node1->right, nullptr);
+		}
+		else if (node2 != nullptr) {
+			result.insert(node2->value);
+			symmetricDifferenceNode(nullptr, node2->left);
+			symmetricDifferenceNode(nullptr, node2->right);
+		}
+	}
+
 };
 
 size_t lcg() {
 	static size_t x = 0;
 	x = (1021 * x + 24631) % 116640;
 	return x;
+}
+
+template<class T>
+MyTree<T> unification(const MyTree<T>& MyTree1, const MyTree<T>& MyTree2)
+{
+	MyTree <T> NewTree();
+	MyTree1.unionTree(MyTree2, NewTree);
+	return(NewTree);
+}
+
+template<class T>
+MyTree<T> symmetricDifference(const MyTree<T>& MyTree1, const MyTree<T>& MyTree2)
+{
+	MyTree <T> NewTree();
+	MyTree1.symmetricDifference(MyTree2, NewTree);
+	return(NewTree);
 }
 
