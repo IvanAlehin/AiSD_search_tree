@@ -56,22 +56,41 @@ private:
 		return (height(ptr->left) - height(ptr->right));
 	}
 
-	Node* rotate_left(Node* ptr) {//
+	Node* rotate_left(Node* ptr) {
 		auto tmp = ptr->right;
 		ptr->right = tmp->left;
 		tmp->left = ptr;
 		return tmp;
 	}
 
-	Node* rotate_right(Node* ptr) {//
+	Node* rotate_right(Node* ptr) {
 		auto tmp = ptr->left;
 		ptr->left = tmp->right;
 		tmp->right = ptr;
 		return tmp;
 	}
 
-	Node* balance(Node* ptr) {//
+	Node* balance(Node* ptr) {
+		/*if (!ptr) {
+			return ptr;
+		}
 
+		auto x = ratio(ptr);
+		if (x > 1) {
+			if (ratio(ptr->left) < 0) {
+				ptr->left = rotate_left(ptr->left);
+			}
+			return rotate_right(ptr);
+			
+		}
+		if (x < -1) {
+			if (ratio(ptr->right) > 0) {
+				ptr->right = rotate_right(ptr->right);
+			}
+			return rotate_left(ptr);
+			
+		}
+		return ptr;*/
 		auto x = ratio(ptr);
 		if (x > 1) {
 			if (ratio(ptr->left) >= 0) {
@@ -164,9 +183,9 @@ private:
 
 	void print(Node* ptr) {
 		if (ptr) {
+			print(ptr->left);
 			cout << ptr->value << " ";
-			this->print(ptr->left);
-			this->print(ptr->right);
+			print(ptr->right);
 		}
 		else {
 			cout << "- ";
@@ -177,7 +196,7 @@ private:
 		if (ptr == nullptr) {
 			return false;
 		}
-		if (ptr->value != value) {
+		if (ptr->value == value) {
 			return true;
 		}
 		if (value > ptr->value) {
@@ -233,6 +252,7 @@ public:
 		print(root);
 		cout << endl;
 	}
+
 	bool contains(const int value) {
 		if (!contains(root, value)) {
 			return false;
@@ -255,14 +275,14 @@ public:
 
 	void unionTreeNode(Node* node1, Node* node2, MyTree& result) {
 		if (node1 != nullptr) {
-			unionTreeNode(node1->left, nullptr);
+			unionTreeNode(node1->left, nullptr, result);
 			result.insert(node1->value);
-			unionTreeNode(node1->value, nullptr);
+			unionTreeNode(node1->right, nullptr, result);
 		}
 		if (node2 != nullptr) {
-			unionTreeNode(nullptr, node2->left);
+			unionTreeNode(nullptr, node2->left, result);
 			result.insert(node2->value);
-			unionTreeNode(nullptr, node2->right);
+			unionTreeNode(nullptr, node2->right, result);
 		}
 	}
 
@@ -271,38 +291,25 @@ public:
 	}
 
 	void symmetricDifferenceNode(Node* node1, Node* node2, MyTree& result) {
-		if (node1 == nullptr && node2 == nullptr) {
-			return;
+		
+		if (node1 != nullptr) {
+			symmetricDifferenceNode(node1->left, nullptr, result);
+			result.insert(node1->value);
+			symmetricDifferenceNode(node1->right, nullptr, result);
 		}
 
-		if (node1 != nullptr && node2 != nullptr) {
-			if (node1->value < node2->value) {
-				symmetricDifferenceNode(node1->left, node2);
-				result.insert(node1->value);
-				symmetricDifferenceNode(node1->right, node2);
-			}
-			else if (node1->value > node2->value) {
-				symmetricDifferenceNode(node1, node2->left); 
+		if (node2 != nullptr) {
+			symmetricDifferenceNode(nullptr, node2->left, result);
+			if (!result.contains(node2->value)) {
 				result.insert(node2->value);
-				symmetricDifferenceNode(node1, node2->right);
 			}
 			else {
-				symmetricDifferenceNode(node1->left, node2->left);
-				symmetricDifferenceNode(node1->right, node2->right);
+				result.erase(node2->value);
 			}
+			symmetricDifferenceNode(nullptr, node2->right, result);
 		}
-		else if (node1 != nullptr) {
-			result.insert(node1->value);
-			symmetricDifferenceNode(node1->left, nullptr);
-			symmetricDifferenceNode(node1->right, nullptr);
-		}
-		else if (node2 != nullptr) {
-			result.insert(node2->value);
-			symmetricDifferenceNode(nullptr, node2->left);
-			symmetricDifferenceNode(nullptr, node2->right);
-		}
-	}
 
+	}
 };
 
 size_t lcg() {
@@ -311,18 +318,100 @@ size_t lcg() {
 	return x;
 }
 
-template<class T>
-MyTree<T> unification(const MyTree<T>& MyTree1, const MyTree<T>& MyTree2)
+void compare(int lenght) {
+	unsigned int vec_time = 0;
+	unsigned int tree_time = 0;
+	unsigned int time;
+
+	vector<int> vec;
+	MyTree tree;
+
+	for (int i(0); i < 100; ++i) {
+
+		for (int j(0); j < lenght; ++j) {
+			int value = lcg();
+
+			time = clock();
+			vec.push_back(value);
+			vec_time += clock() - time;
+
+			time = clock();
+			tree.insert(value);
+			tree_time += clock() - time;
+		}
+
+		vec.clear();
+		tree.clear();
+	}
+	std::cout << "Lenght: " << lenght<< endl<<endl;
+	std::cout << "Insertion:" << endl;
+	std::cout << "vector : " << double(vec_time) / 100.0 << " ms" << endl;
+	std::cout << "tree : " << double(tree_time) / 100.0 << " ms" << endl << endl;
+
+	vec_time = 0;
+	tree_time = 0;
+
+	for (int i(0); i < lenght; ++i) {
+		int value = lcg();
+		vec.push_back(value);
+		tree.insert(value);
+	}
+	bool flag = false;
+	for (int i(0); i < 1000; ++i) {
+		int value = lcg();
+
+		time = clock();
+
+		for (int j = 0; j != vec.size(); ++j) {
+			if (vec[j] == value) {
+				break;
+			}
+		}
+
+		vec_time += clock() - time;
+
+		time = clock();
+		flag = tree.contains(value);
+		tree_time += clock() - time;
+	}
+	std::cout << "Search:" << endl;
+	std::cout << "vector : " << double(vec_time) / 1000.0 << " ms" << endl;
+	std::cout << "tree : " << double(tree_time) / 1000.0 << " ms" << endl << endl;
+
+	vec_time = 0;
+	tree_time = 0;
+
+	for (int i(0); i < 1000; ++i) {
+		int value = lcg();
+
+		time = clock();
+		vec.push_back(value);
+		erase(vec, value);
+		vec_time += clock() - time;
+
+		time = clock();
+		tree.insert(value);
+		tree.erase(value);
+		tree_time += clock() - time;
+
+	}
+	vec.clear();
+	tree.clear();
+	std::cout << "Insertion & erasing:" << endl;
+	std::cout << "vector : " << double(vec_time) / 1000.0 << " ms" << endl;
+	std::cout << "tree : " << double(tree_time) / 1000.0 << " ms" << endl<<endl<<endl;
+}
+
+MyTree unification( MyTree& MyTree1, MyTree& MyTree2)
 {
-	MyTree <T> NewTree();
+	MyTree NewTree;
 	MyTree1.unionTree(MyTree2, NewTree);
 	return(NewTree);
 }
 
-template<class T>
-MyTree<T> symmetricDifference(const MyTree<T>& MyTree1, const MyTree<T>& MyTree2)
+MyTree symmetricDifference( MyTree& MyTree1, MyTree& MyTree2)
 {
-	MyTree <T> NewTree();
+	MyTree NewTree;
 	MyTree1.symmetricDifference(MyTree2, NewTree);
 	return(NewTree);
 }
